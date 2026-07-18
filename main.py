@@ -118,10 +118,13 @@ fig.patch.set_facecolor('#1a1a1a')
 ax.set_facecolor('#2a2a2a')
 
 # OPTIMIZATION: Sample track background points (every 5th point)
-track_sample = 5
+track_sample = 2
 ax.plot(driver1_x[::track_sample], driver1_y[::track_sample],
-        color='white', alpha=0.3, linewidth=1.5,
-        linestyle='--', label='Track Layout')
+        color='yellow', alpha=0.5, linewidth=16,
+        linestyle='-')
+ax.plot(driver2_x[::track_sample], driver2_y[::track_sample],
+        color='black', alpha=0.9, linewidth=10,
+        linestyle='-')
 
 # Initialize moving elements
 driver1_point, = ax.plot([], [], 'o', color='#0600ef', markersize=12,
@@ -149,6 +152,7 @@ ax.set_title(title_text, fontsize=14, color='white', pad=15, fontweight='bold')
 # Styling
 ax.set_xlabel('X Position (m)', fontsize=10, color='white')
 ax.set_ylabel('Y Position (m)', fontsize=10, color='white')
+ax.axis('off')
 ax.tick_params(colors='white', labelsize=9)
 ax.legend(loc='upper right', fontsize=9, facecolor='black',
          edgecolor='white', labelcolor='white')
