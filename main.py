@@ -49,7 +49,6 @@ Button(
 
 popup.mainloop()
 speed_factor = speed_factor.get()
-print(speed_factor)
 
 if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
