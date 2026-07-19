@@ -8,7 +8,7 @@ import gc
 import warnings
 warnings.filterwarnings("ignore")
 cache_dir = os.path.expanduser('-f1_cache')
-speed_factor = 8
+speed_factor = 1
 
 if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
