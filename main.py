@@ -6,9 +6,50 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import gc
 import warnings
+from tkinter import *
 warnings.filterwarnings("ignore")
 cache_dir = os.path.expanduser('-f1_cache')
-speed_factor = 1
+
+popup = Tk()
+popup.title("Animation Settings")
+popup.configure(background="#2a2a2a")
+popup.geometry("250x230")
+speed_factor = IntVar(value=1)
+Label(popup, text="Select Animation Speed",
+      font=("Arial",12,"bold"),background="#2a2a2a",fg="red").pack(pady=10)
+
+speeds = [("1x",1),
+          ("2x",2),
+          ("4x",4),
+          ("8x",8),
+          ("16x",16)]
+
+for text,value in speeds:
+    Radiobutton(
+        popup,
+        text=text,
+        variable=speed_factor,
+        value=value,
+        background="#2a2a2a",
+        fg="red").pack(anchor="w",padx=30)
+
+Label(
+    popup,
+    text="Recommended speed: 8x",
+    font=("Arial",9,"italic"),
+    background="#2a2a2a",
+    fg="red"
+)
+
+Button(
+    popup,
+    text="Continue",
+    command=popup.destroy,
+    background="white").pack(pady=15)
+
+popup.mainloop()
+speed_factor = speed_factor.get()
+print(speed_factor)
 
 if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
@@ -232,8 +273,8 @@ def animate(frame):
 
 # Create animation
 print("\nBuilding animation frames (this is faster with optimizations)...")
-anim = FuncAnimation(fig, animate, frames=total_frames,
-                    interval=1000/(FPS*speed_factor), blit=True, repeat=False)
+anim = FuncAnimation(fig, animate, frames=range(0,total_frames,speed_factor),
+                    interval=1000/FPS, blit=True, repeat=False)
 
 plt.show()
 
