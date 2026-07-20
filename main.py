@@ -13,8 +13,8 @@ cache_dir = os.path.expanduser('-f1_cache')
 popup = Tk()
 popup.title("Animation Settings")
 popup.configure(background="#2a2a2a")
-popup.geometry("250x230")
-speed_factor = IntVar(value=1)
+popup.geometry("250x260")
+speed_factor = IntVar(value=8)
 Label(popup, text="Select Animation Speed",
       font=("Arial",12,"bold"),background="#2a2a2a",fg="red").pack(pady=10)
 
@@ -39,7 +39,7 @@ Label(
     font=("Arial",9,"italic"),
     background="#2a2a2a",
     fg="red"
-)
+).pack(pady=10)
 
 Button(
     popup,
