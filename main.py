@@ -124,8 +124,19 @@ print("="*80)
 print(f"\n{DRIVER_1} Fastest Lap: {driver1_fastest['LapTime']}")
 print(f"{DRIVER_2} Fastest Lap: {driver2_fastest['LapTime']}")
 
-driver1_tel = driver1_fastest.get_telemetry()
-driver2_tel = driver2_fastest.get_telemetry()
+
+driver_1_laps_df = session.laps.pick_driver(DRIVER_1)
+driver_2_laps_df = session.laps.pick_driver(DRIVER_2)
+
+all_driver1_telemetry = []
+for lap_number, lap_object in driver_1_laps_df.iterlaps():
+  all_driver1_telemetry.append(lap_object.get_telemetry())
+driver1_tel = pd.concat(all_driver1_telemetry)
+
+all_driver2_telemetry = []
+for lap_number, lap_object in driver_2_laps_df.iterlaps():
+  all_driver2_telemetry.append(lap_object.get_telemetry())
+driver2_tel = pd.concat(all_driver2_telemetry)
 
 SAMPLE_RATE = 3
 driver1_tel = driver1_tel.iloc[::SAMPLE_RATE].reset_index(drop=True)
@@ -136,8 +147,8 @@ driver1_y = driver1_tel['Y'].values
 driver2_x = driver2_tel['X'].values
 driver2_y = driver2_tel['Y'].values
 
-driver1_time = driver1_tel['Time'].dt.total_seconds().values
-driver2_time = driver2_tel['Time'].dt.total_seconds().values
+driver1_time = driver1_tel['SessionTime'].dt.total_seconds().values
+driver2_time = driver2_tel['SessionTime'].dt.total_seconds().values
 
 driver1_time = driver1_time - driver1_time[0]
 driver2_time = driver2_time - driver2_time[0]
@@ -157,7 +168,7 @@ fig, ax = plt.subplots(figsize=(10, 8), dpi=60)
 fig.patch.set_facecolor('#1a1a1a')
 ax.set_facecolor('#2a2a2a')
 
-# OPTIMIZATION: Sample track background points (every 5th point)
+# OPTIMIZATION: Sample track background points (every 2nd point)
 track_sample = 2
 ax.plot(driver1_x[::track_sample], driver1_y[::track_sample],
         color='yellow', alpha=0.5, linewidth=16,
@@ -186,7 +197,7 @@ time_text = ax.text(0.02, 0.98, '', transform=ax.transAxes,
 
 # Title with circuit info
 title_text = (f"{circuit_info['EventName']} - {circuit_info['Location']}\n"
-              f"{DRIVER_1} vs {DRIVER_2} - Fastest Lap Comparison")
+              f"{DRIVER_1} vs {DRIVER_2}")
 ax.set_title(title_text, fontsize=14, color='white', pad=15, fontweight='bold')
 
 # Styling
@@ -272,7 +283,7 @@ def animate(frame):
 
 # Create animation
 print("\nBuilding animation frames (this is faster with optimizations)...")
-anim = FuncAnimation(fig, animate, frames=range(0,total_frames,speed_factor),
+anim = FuncAnimation(fig, animate, frames=range(0,total_frames,speed_factor*2),
                     interval=1000/FPS, blit=True, repeat=False)
 
 plt.show()
