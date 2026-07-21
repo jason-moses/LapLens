@@ -171,23 +171,23 @@ ax.set_facecolor('#2a2a2a')
 # OPTIMIZATION: Sample track background points (every 2nd point)
 track_sample = 2
 ax.plot(driver1_x[::track_sample], driver1_y[::track_sample],
-        color='yellow', alpha=0.5, linewidth=16,
+        color='grey', alpha=0.5, linewidth=16,
         linestyle='-')
 ax.plot(driver2_x[::track_sample], driver2_y[::track_sample],
         color='black', alpha=0.9, linewidth=10,
         linestyle='-')
 
 # Initialize moving elements
-driver1_point, = ax.plot([], [], 'o', color='#0600ef', markersize=12,
+driver1_point, = ax.plot([], [], 'o', color='#dc0000', markersize=12,
                          label=f'{DRIVER_1}', markeredgecolor='white',
                          markeredgewidth=1.5)
-driver2_point, = ax.plot([], [], 'o', color='#dc0000', markersize=12,
+driver2_point, = ax.plot([], [], 'o', color='#00a19b', markersize=12,
                          label=f'{DRIVER_2}', markeredgecolor='white',
                          markeredgewidth=1.5)
 
 # OPTIMIZATION: Shorter trails
-driver1_trail, = ax.plot([], [], color='#0600ef', alpha=0.5, linewidth=1.5)
-driver2_trail, = ax.plot([], [], color='#dc0000', alpha=0.5, linewidth=1.5)
+driver1_trail, = ax.plot([], [], color='#dc0000', alpha=0.5, linewidth=2.5)
+driver2_trail, = ax.plot([], [], color='#00a19b', alpha=0.5, linewidth=2.5)
 
 # Time display
 time_text = ax.text(0.02, 0.98, '', transform=ax.transAxes,
@@ -205,7 +205,7 @@ ax.set_xlabel('X Position (m)', fontsize=10, color='white')
 ax.set_ylabel('Y Position (m)', fontsize=10, color='white')
 ax.axis('off')
 ax.tick_params(colors='white', labelsize=9)
-ax.legend(loc='upper right', fontsize=9, facecolor='black',
+ax.legend(loc='upper right', fontsize=20, markerscale=2,facecolor='black',
          edgecolor='white', labelcolor='white')
 ax.grid(True, alpha=0.2, color='white')
 ax.set_aspect('equal')
@@ -250,7 +250,7 @@ def animate(frame):
     driver2_point.set_data([x2], [y2])
 
     # OPTIMIZATION: Shorter trail (30 points instead of 100)
-    trail_length = 30
+    trail_length = 10
     start_frame = max(0, frame - trail_length)
 
     trail1_x, trail1_y = [], []
@@ -286,5 +286,7 @@ print("\nBuilding animation frames (this is faster with optimizations)...")
 anim = FuncAnimation(fig, animate, frames=range(0,total_frames,speed_factor*2),
                     interval=1000/FPS, blit=True, repeat=False)
 
+manager = plt.get_current_fig_manager()
+manager.window.state('zoomed')
 plt.show()
 
