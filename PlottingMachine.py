@@ -20,7 +20,7 @@ class PlottingMachine:
         popup.title("Animation Settings")
         popup.configure(background="#2a2a2a")
         popup.geometry("250x260")
-        speed_factor = IntVar(value=8)
+        speed_factor = IntVar(value=4)
         Label(popup, text="Select Animation Speed",
               font=("Arial", 12, "bold"), background="#2a2a2a", fg="red").pack(pady=10)
 
@@ -41,7 +41,7 @@ class PlottingMachine:
 
         Label(
             popup,
-            text="Recommended speed: 8x",
+            text="Recommended speed: 4x",
             font=("Arial", 9, "italic"),
             background="#2a2a2a",
             fg="red"
@@ -180,7 +180,7 @@ class PlottingMachine:
                 linestyle='-')
 
         # Initialize moving elements
-        self.driver1_point, = ax.plot([], [], 'o', color='#dc0000', markersize=12,
+        self.driver1_point, = ax.plot([], [], 'o', color='#ed1e36', markersize=12,
                                  label=f'{self.DRIVER_1}', markeredgecolor='white',
                                  markeredgewidth=1.5)
         self.driver2_point, = ax.plot([], [], 'o', color='#00a19b', markersize=12,
@@ -188,7 +188,7 @@ class PlottingMachine:
                                  markeredgewidth=1.5)
 
         # OPTIMIZATION: Shorter trails
-        self.driver1_trail, = ax.plot([], [], color='#dc0000', alpha=0.5, linewidth=2.5)
+        self.driver1_trail, = ax.plot([], [], color='#ed1e36', alpha=0.5, linewidth=2.5)
         self.driver2_trail, = ax.plot([], [], color='#00a19b', alpha=0.5, linewidth=2.5)
 
         # Time display
