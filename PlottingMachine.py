@@ -1,0 +1,295 @@
+import os
+import fastf1
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+import gc
+import warnings
+from tkinter import *
+warnings.filterwarnings("ignore")
+
+
+YEAR = 2021
+RACE = "Brazil"
+SESSION = "R"
+
+class PlottingMachine:
+    def __init__(self):
+        popup = Tk()
+        popup.title("Animation Settings")
+        popup.configure(background="#2a2a2a")
+        popup.geometry("250x260")
+        speed_factor = IntVar(value=8)
+        Label(popup, text="Select Animation Speed",
+              font=("Arial", 12, "bold"), background="#2a2a2a", fg="red").pack(pady=10)
+
+        speeds = [("1x", 1),
+                  ("2x", 2),
+                  ("4x", 4),
+                  ("8x", 8),
+                  ("16x", 16)]
+
+        for text, value in speeds:
+            Radiobutton(
+                popup,
+                text=text,
+                variable=speed_factor,
+                value=value,
+                background="#2a2a2a",
+                fg="red").pack(anchor="w", padx=30)
+
+        Label(
+            popup,
+            text="Recommended speed: 8x",
+            font=("Arial", 9, "italic"),
+            background="#2a2a2a",
+            fg="red"
+        ).pack(pady=10)
+
+        Button(
+            popup,
+            text="Continue",
+            command=popup.destroy,
+            background="white").pack(pady=15)
+
+        popup.mainloop()
+        self.speed_factor = speed_factor.get()
+
+        self.cache_dir = os.path.expanduser('-f1_cache')
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
+            print("Successfully created the cache directory")
+
+        else:
+            print("Cache directory already exists")
+
+        fastf1.Cache.enable_cache(self.cache_dir)
+        print("Libraries Installed and Imported Successfully")
+
+        print(f"\nLoading {YEAR} {RACE} GP - {SESSION} session")
+        self.session = fastf1.get_session(YEAR, RACE, SESSION)
+        self.session.load()
+
+        self.circuit_info = self.session.event
+        print(f"\n{'=' * 60}")
+        print(f"CIRCUIT INFORMATION")
+        print(f"\n{'=' * 60}")
+        print(f"Event: {self.circuit_info['EventName']}")
+        print(f"Location: {self.circuit_info['Location']}")
+        print(f"Country: {self.circuit_info['Country']}")
+        print(f"Circuit: {self.circuit_info['OfficialEventName']}")
+        print(f"Date: {self.circuit_info['EventDate']}")
+        print(f"\n{'=' * 60}")
+
+        self.DRIVER_1 = 'VER'
+        self.DRIVER_2 = 'HAM'
+
+        self.driver1_fastest = self.session.laps.pick_drivers(self.DRIVER_1).pick_fastest()
+        self.driver2_fastest = self.session.laps.pick_drivers(self.DRIVER_2).pick_fastest()
+
+        self.driver1_name = self.driver1_fastest['Driver']
+        self.driver2_name = self.driver2_fastest['Driver']
+
+        self.driver1_laps = self.session.laps.pick_drivers(self.DRIVER_1)
+        self.driver2_laps = self.session.laps.pick_drivers(self.DRIVER_2)
+
+        self.lap_data = []
+
+        for i, lap in enumerate(self.driver1_laps.iterlaps(), 1):
+            self.lap_data.append({
+                'Lap': i,
+                f'{self.DRIVER_1} Time': lap[1]['LapTime'],
+                f'{self.DRIVER_1} Fastest': '*' if lap[1]['LapTime'] == self.driver1_fastest['LapTime'] else ''
+            })
+
+        for i, lap in enumerate(self.driver2_laps.iterlaps(), 1):
+            if i <= len(self.lap_data):
+                self.lap_data[i - 1][f'{self.DRIVER_2} Time'] = lap[1]['LapTime']
+                self.lap_data[i - 1][f'{self.DRIVER_2} Fastest'] = '*' if lap[1]['LapTime'] == self.driver2_fastest['LapTime'] else ''
+
+            else:
+                self.lap_data.append({
+                    'Lap': i,
+                    f'{self.DRIVER_1} Time': None,
+                    f'{self.DRIVER_1} Fastest': '',
+                    f'{self.DRIVER_2} Time': lap[1]['LapTime'],
+                    f'{self.DRIVER_2} Fastest': '*' if lap[1]['LapTime'] == self.driver2_fastest['LapTime'] else ''
+                })
+
+        self.lap_times_df = pd.DataFrame(self.lap_data)
+        print("\n" + "=" * 80)
+        print(f"LAP TIMES COMPARISON - {self.DRIVER_1} vs {self.DRIVER_2}")
+        print("=" * 80)
+        print(self.lap_times_df.to_string(index=False))
+        print("=" * 80)
+
+        print(f"\n{self.DRIVER_1} Fastest Lap: {self.driver1_fastest['LapTime']}")
+        print(f"{self.DRIVER_2} Fastest Lap: {self.driver2_fastest['LapTime']}")
+
+        self.driver_1_laps_df = self.session.laps.pick_drivers(self.DRIVER_1)
+        self.driver_2_laps_df = self.session.laps.pick_drivers(self.DRIVER_2)
+
+        self.all_driver1_telemetry = []
+        for lap_number, lap_object in self.driver_1_laps_df.iterlaps():
+            self.all_driver1_telemetry.append(lap_object.get_telemetry())
+        self.driver1_tel = pd.concat(self.all_driver1_telemetry)
+
+        self.all_driver2_telemetry = []
+        for lap_number, lap_object in self.driver_2_laps_df.iterlaps():
+            self.all_driver2_telemetry.append(lap_object.get_telemetry())
+        self.driver2_tel = pd.concat(self.all_driver2_telemetry)
+
+        self.SAMPLE_RATE = 3
+        self.driver1_tel = self.driver1_tel.iloc[::self.SAMPLE_RATE].reset_index(drop=True)
+        self.driver2_tel = self.driver2_tel.iloc[::self.SAMPLE_RATE].reset_index(drop=True)
+
+        self.driver1_x = self.driver1_tel['X'].values
+        self.driver1_y = self.driver1_tel['Y'].values
+        self.driver2_x = self.driver2_tel['X'].values
+        self.driver2_y = self.driver2_tel['Y'].values
+
+        self.driver1_time = self.driver1_tel['SessionTime'].dt.total_seconds().values
+        self.driver2_time = self.driver2_tel['SessionTime'].dt.total_seconds().values
+
+        self.driver1_time = self.driver1_time - self.driver1_time[0]
+        self.driver2_time = self.driver2_time - self.driver2_time[0]
+
+        print(f"\nTelemetry data extracted for {self.DRIVER_1} and {self.DRIVER_2}")
+        print(f" - {self.DRIVER_1}: {len(self.driver1_x)} data points collected")
+        print(f" - {self.DRIVER_2}: {len(self.driver2_x)} data points collected")
+
+        gc.collect()
+
+        print("\n" + "=" * 60)
+        print("CREATING ANIMATION (OPTIMIZED FOR LOW MEMORY)...")
+        print("=" * 60)
+
+        # OPTIMIZATION: Reduced figure size
+        fig, ax = plt.subplots(figsize=(10, 8), dpi=60)
+        fig.patch.set_facecolor('#1a1a1a')
+        ax.set_facecolor('#2a2a2a')
+
+        # OPTIMIZATION: Sample track background points (every 2nd point)
+        self.track_sample = 2
+        ax.plot(self.driver1_x[::self.track_sample], self.driver1_y[::self.track_sample],
+                color='lightgrey', alpha=0.5, linewidth=16,
+                linestyle='-')
+        ax.plot(self.driver2_x[::self.track_sample], self.driver2_y[::self.track_sample],
+                color='black', alpha=0.9, linewidth=10,
+                linestyle='-')
+
+        # Initialize moving elements
+        self.driver1_point, = ax.plot([], [], 'o', color='#dc0000', markersize=12,
+                                 label=f'{self.DRIVER_1}', markeredgecolor='white',
+                                 markeredgewidth=1.5)
+        self.driver2_point, = ax.plot([], [], 'o', color='#00a19b', markersize=12,
+                                 label=f'{self.DRIVER_2}', markeredgecolor='white',
+                                 markeredgewidth=1.5)
+
+        # OPTIMIZATION: Shorter trails
+        self.driver1_trail, = ax.plot([], [], color='#dc0000', alpha=0.5, linewidth=2.5)
+        self.driver2_trail, = ax.plot([], [], color='#00a19b', alpha=0.5, linewidth=2.5)
+
+        # Time display
+        self.time_text = ax.text(0.02, 0.98, '', transform=ax.transAxes,
+                            fontsize=11, verticalalignment='top',
+                            bbox=dict(boxstyle='round', facecolor='black', alpha=0.8),
+                            color='white', fontfamily='monospace')
+
+        # Title with circuit info
+        self.title_text = (f"{self.circuit_info['EventName']} - {self.circuit_info['Location']}\n"
+                      f"{self.DRIVER_1} vs {self.DRIVER_2}")
+        ax.set_title(self.title_text, fontsize=14, color='white', pad=15, fontweight='bold')
+
+        # Styling
+        ax.set_xlabel('X Position (m)', fontsize=10, color='white')
+        ax.set_ylabel('Y Position (m)', fontsize=10, color='white')
+        ax.axis('off')
+        ax.tick_params(colors='white', labelsize=9)
+        ax.legend(loc='upper right', fontsize=20, markerscale=2, facecolor='black',
+                  edgecolor='white', labelcolor='white')
+        ax.grid(True, alpha=0.2, color='white')
+        ax.set_aspect('equal')
+
+        # OPTIMIZATION: Lower FPS and frame count
+        self.FPS = 15  # Reduced from 30
+        self.max_time = max(self.driver1_time[-1], self.driver2_time[-1])
+        self.total_frames = int(self.max_time * self.FPS)
+
+        print(f"Animation settings:")
+        print(f"  - FPS: {self.FPS} (lower = less memory)")
+        print(f"  - Total frames: {self.total_frames}")
+        print(f"  - Duration: {self.max_time:.2f} seconds")
+        print("\nBuilding animation frames (this is faster with optimizations)...")
+        self.ani = FuncAnimation(fig, self.animate, frames=range(0, self.total_frames, self.speed_factor * 2),
+                             interval=1000 / self.FPS, blit=True, repeat=False)
+
+        self.manager = plt.get_current_fig_manager()
+        self.manager.window.state('zoomed')
+        plt.show()
+
+    def get_position(self,time_val, time_array, x_array, y_array):
+        """Interpolate position at given time"""
+        if time_val > time_array[-1]:
+            return x_array[-1], y_array[-1]
+        idx = np.searchsorted(time_array, time_val)
+        if idx == 0:
+            return x_array[0], y_array[0]
+        if idx >= len(time_array):
+            return x_array[-1], y_array[-1]
+
+        # Linear interpolation
+        t1, t2 = time_array[idx - 1], time_array[idx]
+        alpha = (time_val - t1) / (t2 - t1) if t2 != t1 else 0
+        x = x_array[idx - 1] + alpha * (x_array[idx] - x_array[idx - 1])
+        y = y_array[idx - 1] + alpha * (y_array[idx] - y_array[idx - 1])
+        return x, y
+
+    def animate(self,frame):
+        """Animation function (optimized)"""
+        self.current_time = frame / self.FPS
+
+        # Get positions
+        x1, y1 = self.get_position(self.current_time, self.driver1_time, self.driver1_x, self.driver1_y)
+        x2, y2 = self.get_position(self.current_time, self.driver2_time, self.driver2_x, self.driver2_y)
+
+        # Update points
+        self.driver1_point.set_data([x1], [y1])
+        self.driver2_point.set_data([x2], [y2])
+
+        # OPTIMIZATION: Shorter trail (30 points instead of 100)
+        self.trail_length = 10
+        self.start_frame = max(0, frame - self.trail_length)
+
+        trail1_x, trail1_y = [], []
+        trail2_x, trail2_y = [], []
+
+        # OPTIMIZATION: Sample trail points (every 2nd)
+        for f in range(self.start_frame, frame + 1, 2):
+            t = f / self.FPS
+            tx1, ty1 = self.get_position(t, self.driver1_time, self.driver1_x, self.driver1_y)
+            tx2, ty2 = self.get_position(t, self.driver2_time, self.driver2_x, self.driver2_y)
+            trail1_x.append(tx1)
+            trail1_y.append(ty1)
+            trail2_x.append(tx2)
+            trail2_y.append(ty2)
+
+        self.driver1_trail.set_data(trail1_x, trail1_y)
+        self.driver2_trail.set_data(trail2_x, trail2_y)
+
+        # Update time display
+        self.time_text.set_text(f'Time: {self.current_time:.2f}s\n'
+                           f'{self.DRIVER_1}: {self.driver1_fastest["LapTime"]}\n'
+                           f'{self.DRIVER_2}: {self.driver2_fastest["LapTime"]}')
+
+        # Progress indicator (every 50 frames)
+        if frame % 50 == 0:
+            self.progress = (frame / self.total_frames) * 100
+            print(f"  Rendering: {self.progress:.1f}% complete", end='\r')
+
+        return self.driver1_point, self.driver2_point, self.driver1_trail, self.driver2_trail, self.time_text
+
+
+
+
