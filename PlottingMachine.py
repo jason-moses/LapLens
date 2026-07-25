@@ -140,7 +140,7 @@ class PlottingMachine:
             self.all_driver2_telemetry.append(lap_object.get_telemetry())
         self.driver2_tel = pd.concat(self.all_driver2_telemetry)
 
-        self.SAMPLE_RATE = 3
+        self.SAMPLE_RATE = 1
         self.driver1_tel = self.driver1_tel.iloc[::self.SAMPLE_RATE].reset_index(drop=True)
         self.driver2_tel = self.driver2_tel.iloc[::self.SAMPLE_RATE].reset_index(drop=True)
 
@@ -171,11 +171,10 @@ class PlottingMachine:
         ax.set_facecolor('#2a2a2a')
 
         # OPTIMIZATION: Sample track background points (every 2nd point)
-        self.track_sample = 2
-        ax.plot(self.driver1_x[::self.track_sample], self.driver1_y[::self.track_sample],
+        ax.plot(self.driver1_x, self.driver1_y,
                 color='lightgrey', alpha=0.5, linewidth=16,
                 linestyle='-')
-        ax.plot(self.driver2_x[::self.track_sample], self.driver2_y[::self.track_sample],
+        ax.plot(self.driver2_x, self.driver2_y,
                 color='black', alpha=0.9, linewidth=10,
                 linestyle='-')
 
@@ -213,21 +212,21 @@ class PlottingMachine:
         ax.set_aspect('equal')
 
         # OPTIMIZATION: Lower FPS and frame count
-        self.FPS = 15  # Reduced from 30
+          # Reduced from 30
         self.max_time = max(self.driver1_time[-1], self.driver2_time[-1])
-        self.total_frames = int(self.max_time * self.FPS)
+        self.total_frames = 48384
+        self.FPS = self.total_frames / self.max_time
 
         print(f"Animation settings:")
         print(f"  - FPS: {self.FPS} (lower = less memory)")
         print(f"  - Total frames: {self.total_frames}")
         print(f"  - Duration: {self.max_time:.2f} seconds")
         print("\nBuilding animation frames (this is faster with optimizations)...")
-        self.ani = FuncAnimation(fig, self.animate, frames=range(0, self.total_frames, self.speed_factor * 2),
-                             interval=1000 / self.FPS, blit=True, repeat=False)
+        self.ani = FuncAnimation(fig, self.animate, frames=range(0, self.total_frames, self.speed_factor),
+                             interval=600/self.FPS, blit=True, repeat=False)
 
         self.manager = plt.get_current_fig_manager()
         self.manager.window.state('zoomed')
-        plt.show()
 
     def get_position(self,time_val, time_array, x_array, y_array):
         """Interpolate position at given time"""
@@ -248,7 +247,7 @@ class PlottingMachine:
 
     def animate(self,frame):
         """Animation function (optimized)"""
-        self.current_time = frame / self.FPS
+        self.current_time = self.driver1_time[frame]
 
         # Get positions
         x1, y1 = self.get_position(self.current_time, self.driver1_time, self.driver1_x, self.driver1_y)
@@ -266,8 +265,8 @@ class PlottingMachine:
         trail2_x, trail2_y = [], []
 
         # OPTIMIZATION: Sample trail points (every 2nd)
-        for f in range(self.start_frame, frame + 1, 2):
-            t = f / self.FPS
+        for f in range(self.start_frame, frame + 1):
+            t = self.driver1_time[f]
             tx1, ty1 = self.get_position(t, self.driver1_time, self.driver1_x, self.driver1_y)
             tx2, ty2 = self.get_position(t, self.driver2_time, self.driver2_x, self.driver2_y)
             trail1_x.append(tx1)
