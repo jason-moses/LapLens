@@ -7,6 +7,9 @@ from matplotlib.animation import FuncAnimation
 import gc
 import warnings
 from tkinter import *
+
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 warnings.filterwarnings("ignore")
 
 
@@ -146,8 +149,10 @@ class PlottingMachine:
 
         self.driver1_x = self.driver1_tel['X'].values
         self.driver1_y = self.driver1_tel['Y'].values
+        self.driver1_speed = self.driver1_tel['Speed'].values
         self.driver2_x = self.driver2_tel['X'].values
         self.driver2_y = self.driver2_tel['Y'].values
+        self.driver2_speed = self.driver2_tel['Speed'].values
 
         self.driver1_time = self.driver1_tel['SessionTime'].dt.total_seconds().values
         self.driver2_time = self.driver2_tel['SessionTime'].dt.total_seconds().values
@@ -166,32 +171,32 @@ class PlottingMachine:
         print("=" * 60)
 
         # OPTIMIZATION: Reduced figure size
-        fig, ax = plt.subplots(figsize=(10, 8), dpi=60)
-        fig.patch.set_facecolor('#1a1a1a')
-        ax.set_facecolor('#2a2a2a')
+        self.fig, self.ax = plt.subplots(figsize=(10, 8), dpi=60)
+        self.fig.patch.set_facecolor('#1a1a1a')
+        self.ax.set_facecolor('#2a2a2a')
 
         # OPTIMIZATION: Sample track background points (every 2nd point)
-        ax.plot(self.driver1_x, self.driver1_y,
+        self.ax.plot(self.driver1_x, self.driver1_y,
                 color='lightgrey', alpha=0.5, linewidth=16,
                 linestyle='-')
-        ax.plot(self.driver2_x, self.driver2_y,
+        self.ax.plot(self.driver2_x, self.driver2_y,
                 color='black', alpha=0.9, linewidth=10,
                 linestyle='-')
 
         # Initialize moving elements
-        self.driver1_point, = ax.plot([], [], 'o', color='#ed1e36', markersize=12,
+        self.driver1_point, = self.ax.plot([], [], 'o', color='#ed1e36', markersize=12,
                                  label=f'{self.DRIVER_1}', markeredgecolor='white',
                                  markeredgewidth=1.5)
-        self.driver2_point, = ax.plot([], [], 'o', color='#00a19b', markersize=12,
+        self.driver2_point, = self.ax.plot([], [], 'o', color='#00a19b', markersize=12,
                                  label=f'{self.DRIVER_2}', markeredgecolor='white',
                                  markeredgewidth=1.5)
 
         # OPTIMIZATION: Shorter trails
-        self.driver1_trail, = ax.plot([], [], color='#ed1e36', alpha=0.5, linewidth=2.5)
-        self.driver2_trail, = ax.plot([], [], color='#00a19b', alpha=0.5, linewidth=2.5)
+        self.driver1_trail, = self.ax.plot([], [], color='#ed1e36', alpha=0.5, linewidth=2.5)
+        self.driver2_trail, = self.ax.plot([], [], color='#00a19b', alpha=0.5, linewidth=2.5)
 
         # Time display
-        self.time_text = ax.text(0.02, 0.98, '', transform=ax.transAxes,
+        self.time_text = self.ax.text(0.02, 0.98, '', transform=self.ax.transAxes,
                             fontsize=11, verticalalignment='top',
                             bbox=dict(boxstyle='round', facecolor='black', alpha=0.8),
                             color='white', fontfamily='monospace')
@@ -199,17 +204,17 @@ class PlottingMachine:
         # Title with circuit info
         self.title_text = (f"{self.circuit_info['EventName']} - {self.circuit_info['Location']}\n"
                       f"{self.DRIVER_1} vs {self.DRIVER_2}")
-        ax.set_title(self.title_text, fontsize=14, color='white', pad=15, fontweight='bold')
+        self.ax.set_title(self.title_text, fontsize=14, color='white', pad=15, fontweight='bold')
 
         # Styling
-        ax.set_xlabel('X Position (m)', fontsize=10, color='white')
-        ax.set_ylabel('Y Position (m)', fontsize=10, color='white')
-        ax.axis('off')
-        ax.tick_params(colors='white', labelsize=9)
-        ax.legend(loc='upper right', fontsize=20, markerscale=2, facecolor='black',
+        self.ax.set_xlabel('X Position (m)', fontsize=10, color='white')
+        self.ax.set_ylabel('Y Position (m)', fontsize=10, color='white')
+        self.ax.axis('off')
+        self.ax.tick_params(colors='white', labelsize=9)
+        self.ax.legend(loc='upper right', fontsize=20, markerscale=2, facecolor='black',
                   edgecolor='white', labelcolor='white')
-        ax.grid(True, alpha=0.2, color='white')
-        ax.set_aspect('equal')
+        self.ax.grid(True, alpha=0.2, color='white')
+        self.ax.set_aspect('equal')
 
         # OPTIMIZATION: Lower FPS and frame count
           # Reduced from 30
@@ -222,11 +227,13 @@ class PlottingMachine:
         print(f"  - Total frames: {self.total_frames}")
         print(f"  - Duration: {self.max_time:.2f} seconds")
         print("\nBuilding animation frames (this is faster with optimizations)...")
-        self.ani = FuncAnimation(fig, self.animate, frames=range(0, self.total_frames, self.speed_factor),
+        self.root = Tk()
+        self.ani = FuncAnimation(self.fig, self.animate, frames=range(0, self.total_frames, self.speed_factor),
                              interval=600/self.FPS, blit=True, repeat=False)
-
-        self.manager = plt.get_current_fig_manager()
-        self.manager.window.state('zoomed')
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(fill="both", expand=True)
+        self.root.mainloop()
 
     def get_position(self,time_val, time_array, x_array, y_array):
         """Interpolate position at given time"""
@@ -281,6 +288,7 @@ class PlottingMachine:
         self.time_text.set_text(f'Time: {self.current_time:.2f}s\n'
                            f'{self.DRIVER_1}: {self.driver1_fastest["LapTime"]}\n'
                            f'{self.DRIVER_2}: {self.driver2_fastest["LapTime"]}')
+
 
         # Progress indicator (every 50 frames)
         if frame % 50 == 0:
