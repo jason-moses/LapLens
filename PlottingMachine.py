@@ -201,6 +201,9 @@ class PlottingMachine:
                             bbox=dict(boxstyle='round', facecolor='black', alpha=0.8),
                             color='white', fontfamily='monospace')
 
+        self.speed_text1 = self.ax.text(0.02, 0.98, '', transform=self.ax.transAxes,color='white')
+        self.speed_text2 = self.ax.text(0.02, 0.02, '', transform=self.ax.transAxes,color='white')
+
         # Title with circuit info
         self.title_text = (f"{self.circuit_info['EventName']} - {self.circuit_info['Location']}\n"
                       f"{self.DRIVER_1} vs {self.DRIVER_2}")
@@ -235,30 +238,31 @@ class PlottingMachine:
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
         self.root.mainloop()
 
-    def get_position(self,time_val, time_array, x_array, y_array):
+    def get_position(self,time_val, time_array, x_array, y_array, speed_array):
         """Interpolate position at given time"""
         if time_val > time_array[-1]:
-            return x_array[-1], y_array[-1]
+            return x_array[-1], y_array[-1], speed_array[-1]
         idx = np.searchsorted(time_array, time_val)
         if idx == 0:
-            return x_array[0], y_array[0]
+            return x_array[0], y_array[0], speed_array[0]
         if idx >= len(time_array):
-            return x_array[-1], y_array[-1]
+            return x_array[-1], y_array[-1], speed_array[-1]
 
         # Linear interpolation
         t1, t2 = time_array[idx - 1], time_array[idx]
         alpha = (time_val - t1) / (t2 - t1) if t2 != t1 else 0
         x = x_array[idx - 1] + alpha * (x_array[idx] - x_array[idx - 1])
         y = y_array[idx - 1] + alpha * (y_array[idx] - y_array[idx - 1])
-        return x, y
+        speed = speed_array[idx - 1] + alpha * (speed_array[idx] - speed_array[idx - 1])
+        return x, y, speed
 
     def animate(self,frame):
         """Animation function (optimized)"""
         self.current_time = self.driver1_time[frame]
 
         # Get positions
-        x1, y1 = self.get_position(self.current_time, self.driver1_time, self.driver1_x, self.driver1_y)
-        x2, y2 = self.get_position(self.current_time, self.driver2_time, self.driver2_x, self.driver2_y)
+        x1, y1, speed1 = self.get_position(self.current_time, self.driver1_time, self.driver1_x, self.driver1_y, self.driver1_speed)
+        x2, y2, speed2 = self.get_position(self.current_time, self.driver2_time, self.driver2_x, self.driver2_y, self.driver2_speed)
 
         # Update points
         self.driver1_point.set_data([x1], [y1])
@@ -274,8 +278,8 @@ class PlottingMachine:
         # OPTIMIZATION: Sample trail points (every 2nd)
         for f in range(self.start_frame, frame + 1):
             t = self.driver1_time[f]
-            tx1, ty1 = self.get_position(t, self.driver1_time, self.driver1_x, self.driver1_y)
-            tx2, ty2 = self.get_position(t, self.driver2_time, self.driver2_x, self.driver2_y)
+            tx1, ty1, tvel1 = self.get_position(t, self.driver1_time, self.driver1_x, self.driver1_y, self.driver1_speed)
+            tx2, ty2, tvel2 = self.get_position(t, self.driver2_time, self.driver2_x, self.driver2_y, self.driver2_speed)
             trail1_x.append(tx1)
             trail1_y.append(ty1)
             trail2_x.append(tx2)
@@ -289,13 +293,16 @@ class PlottingMachine:
                            f'{self.DRIVER_1}: {self.driver1_fastest["LapTime"]}\n'
                            f'{self.DRIVER_2}: {self.driver2_fastest["LapTime"]}')
 
+        self.speed_text1.set_text(f"{self.DRIVER_1}: {speed1:.2f}")
+        self.speed_text2.set_text(f"{self.DRIVER_2}: {speed2:.2f}")
+
 
         # Progress indicator (every 50 frames)
         if frame % 50 == 0:
             self.progress = (frame / self.total_frames) * 100
             print(f"  Rendering: {self.progress:.1f}% complete", end='\r')
 
-        return self.driver1_point, self.driver2_point, self.driver1_trail, self.driver2_trail, self.time_text
+        return self.driver1_point, self.driver2_point, self.driver1_trail, self.driver2_trail, self.time_text, self.speed_text1, self.speed_text2
 
 
 
