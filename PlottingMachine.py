@@ -9,6 +9,7 @@ import warnings
 from tkinter import *
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from adjustText import adjust_text
 
 warnings.filterwarnings("ignore")
 
@@ -201,8 +202,16 @@ class PlottingMachine:
                             bbox=dict(boxstyle='round', facecolor='black', alpha=0.8),
                             color='white', fontfamily='monospace')
 
-        self.speed_text1 = self.ax.text(0.02, 0.98, '', transform=self.ax.transAxes,color='white')
-        self.speed_text2 = self.ax.text(0.02, 0.02, '', transform=self.ax.transAxes,color='white')
+        self.speed_text1 = self.ax.text(0.02, 0.5, '',
+                                        transform=self.ax.transAxes,color='white',fontsize=20,
+                                        bbox=dict(facecolor='black', alpha=1,boxstyle='round,pad=0.5'))
+        self.speed_text2 = self.ax.text(0.98, 0.5, '',
+                                        transform=self.ax.transAxes,color='white',fontsize=20,
+                                        bbox=dict(facecolor='black', alpha=1,boxstyle='round,pad=0.5'))
+        self.texts = []
+        self.texts.append(self.speed_text1)
+        self.texts.append(self.speed_text2)
+        adjust_text(self.texts, objects=[self.ax],arrowprops=dict(arrowstyle='-',color='grey'))
 
         # Title with circuit info
         self.title_text = (f"{self.circuit_info['EventName']} - {self.circuit_info['Location']}\n"
@@ -218,6 +227,7 @@ class PlottingMachine:
                   edgecolor='white', labelcolor='white')
         self.ax.grid(True, alpha=0.2, color='white')
         self.ax.set_aspect('equal')
+        self.ax.set_box_aspect(0.5)
 
         # OPTIMIZATION: Lower FPS and frame count
           # Reduced from 30
@@ -293,8 +303,8 @@ class PlottingMachine:
                            f'{self.DRIVER_1}: {self.driver1_fastest["LapTime"]}\n'
                            f'{self.DRIVER_2}: {self.driver2_fastest["LapTime"]}')
 
-        self.speed_text1.set_text(f"{self.DRIVER_1}: {speed1:.2f}")
-        self.speed_text2.set_text(f"{self.DRIVER_2}: {speed2:.2f}")
+        self.speed_text1.set_text(f"{self.DRIVER_1}:\n {speed1:.0f}")
+        self.speed_text2.set_text(f"{self.DRIVER_2}:\n {speed2:.0f}")
 
 
         # Progress indicator (every 50 frames)
