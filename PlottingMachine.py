@@ -204,10 +204,10 @@ class PlottingMachine:
 
         self.speed_text1 = self.ax.text(0.1, 0.5, '',
                                         transform=self.ax.transAxes,color='#ed1e36',fontsize=50,
-                                        weight='bold', style='italic', fontname='Futura')
+                                        weight='bold', style='italic', fontname='Impact')
         self.speed_text2 = self.ax.text(0.9, 0.5, '',
                                         transform=self.ax.transAxes,color='#00a19b',fontsize=50,
-                                        weight='bold', style='italic', fontname='Futura')
+                                        weight='bold', style='italic', fontname='Impact')
         self.texts = []
         self.texts.append(self.speed_text1)
         self.texts.append(self.speed_text2)
