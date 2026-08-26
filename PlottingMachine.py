@@ -197,17 +197,17 @@ class PlottingMachine:
         self.driver2_trail, = self.ax.plot([], [], color='#00a19b', alpha=0.5, linewidth=2.5)
 
         # Time display
-        self.time_text = self.ax.text(0.02, 0.98, '', transform=self.ax.transAxes,
+        self.time_text = self.ax.text(0.25, 0.98, '', transform=self.ax.transAxes,
                             fontsize=11, verticalalignment='top',
                             bbox=dict(boxstyle='round', facecolor='black', alpha=0.8),
                             color='white', fontfamily='monospace')
 
-        self.speed_text1 = self.ax.text(0.02, 0.5, '',
-                                        transform=self.ax.transAxes,color='white',fontsize=20,
-                                        bbox=dict(facecolor='black', alpha=1,boxstyle='round,pad=0.5'))
-        self.speed_text2 = self.ax.text(0.98, 0.5, '',
-                                        transform=self.ax.transAxes,color='white',fontsize=20,
-                                        bbox=dict(facecolor='black', alpha=1,boxstyle='round,pad=0.5'))
+        self.speed_text1 = self.ax.text(0.1, 0.5, '',
+                                        transform=self.ax.transAxes,color='#ed1e36',fontsize=50,
+                                        weight='bold', style='italic', fontname='Futura')
+        self.speed_text2 = self.ax.text(0.9, 0.5, '',
+                                        transform=self.ax.transAxes,color='#00a19b',fontsize=50,
+                                        weight='bold', style='italic', fontname='Futura')
         self.texts = []
         self.texts.append(self.speed_text1)
         self.texts.append(self.speed_text2)
@@ -223,11 +223,12 @@ class PlottingMachine:
         self.ax.set_ylabel('Y Position (m)', fontsize=10, color='white')
         self.ax.axis('off')
         self.ax.tick_params(colors='white', labelsize=9)
-        self.ax.legend(loc='upper right', fontsize=20, markerscale=2, facecolor='black',
+        self.ax.legend(loc='upper right',
+                  bbox_to_anchor=(0.7,1), fontsize=20, markerscale=2, facecolor='black',
                   edgecolor='white', labelcolor='white')
         self.ax.grid(True, alpha=0.2, color='white')
         self.ax.set_aspect('equal')
-        self.ax.set_box_aspect(0.5)
+        self.ax.set_box_aspect(0.7)
 
         # OPTIMIZATION: Lower FPS and frame count
           # Reduced from 30
@@ -303,8 +304,8 @@ class PlottingMachine:
                            f'{self.DRIVER_1}: {self.driver1_fastest["LapTime"]}\n'
                            f'{self.DRIVER_2}: {self.driver2_fastest["LapTime"]}')
 
-        self.speed_text1.set_text(f"{self.DRIVER_1}:\n {speed1:.0f}")
-        self.speed_text2.set_text(f"{self.DRIVER_2}:\n {speed2:.0f}")
+        self.speed_text1.set_text(f"{speed1:.0f} \nkm/h")
+        self.speed_text2.set_text(f"{speed2:.0f} \nkm/h")
 
 
         # Progress indicator (every 50 frames)
