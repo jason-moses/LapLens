@@ -204,10 +204,10 @@ class PlottingMachine:
 
         self.speed_text1 = self.ax.text(0.1, 0.5, '',
                                         transform=self.ax.transAxes,color='#ed1e36',fontsize=50,
-                                        weight='bold', style='italic', fontname='Impact')
+                                        style='italic', fontname='Impact')
         self.speed_text2 = self.ax.text(0.9, 0.5, '',
                                         transform=self.ax.transAxes,color='#00a19b',fontsize=50,
-                                        weight='bold', style='italic', fontname='Impact')
+                                        style='italic', fontname='Impact')
         self.texts = []
         self.texts.append(self.speed_text1)
         self.texts.append(self.speed_text2)
@@ -242,6 +242,7 @@ class PlottingMachine:
         print(f"  - Duration: {self.max_time:.2f} seconds")
         print("\nBuilding animation frames (this is faster with optimizations)...")
         self.root = Tk()
+        self.root.state('zoomed')
         self.ani = FuncAnimation(self.fig, self.animate, frames=range(0, self.total_frames, self.speed_factor),
                              interval=600/self.FPS, blit=True, repeat=False)
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
