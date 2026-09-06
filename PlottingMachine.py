@@ -210,10 +210,10 @@ class PlottingMachine:
         self.speed_text2 = self.ax.text(0.9, 0.5, '',
                                         transform=self.ax.transAxes,color='#00a19b',fontsize=50,
                                         style='italic', fontname='Impact')
-        self.drs_text1 = self.ax.text(0.05, 0.6, '',
+        self.drs_text1 = self.ax.text(0.05, 0.4, '',
                                       transform=self.ax.transAxes,color='#ed1e36',fontsize=20,
                                       style='italic', fontname='Impact')
-        self.drs_text2 = self.ax.text(0.95, 0.6, '',
+        self.drs_text2 = self.ax.text(0.9, 0.4, '',
                                       transform=self.ax.transAxes,color='#00a19b',fontsize=20,
                                       style='italic', fontname='Impact')
         self.texts = []
