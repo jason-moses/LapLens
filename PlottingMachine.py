@@ -218,15 +218,17 @@ class PlottingMachine:
         self.drs_text2 = self.ax.text(0.9, 0.4, '',
                                       transform=self.ax.transAxes,color='#00a19b',fontsize=20,
                                       style='italic', fontname='Impact')
-        self.gear_text1 = self.ax.text(0.05, 0.3,'',
+        self.gear_text1 = self.ax.text(0.1, 0.7,'',
                                        transform=self.ax.transAxes,color='#ed1e36',fontsize=30,
                                        style='italic', fontname='Impact')
-        self.gear_text2 = self.ax.text(0.9, 0.3, '',
+        self.gear_text2 = self.ax.text(0.9, 0.7, '',
                                        transform=self.ax.transAxes,color='#00a19b',fontsize=30,
                                        style='italic', fontname='Impact')
         self.texts = []
         self.texts.append(self.speed_text1)
         self.texts.append(self.speed_text2)
+        self.texts.append(self.gear_text1)
+        self.texts.append(self.gear_text2)
         adjust_text(self.texts, objects=[self.ax],arrowprops=dict(arrowstyle='-',color='grey'))
 
         # Title with circuit info
