@@ -136,12 +136,18 @@ class PlottingMachine:
 
         self.all_driver1_telemetry = []
         for lap_number, lap_object in self.driver_1_laps_df.iterlaps():
-            self.all_driver1_telemetry.append(lap_object.get_telemetry())
+            self.lap_telemetry1 = lap_object.get_telemetry()
+            self.lap_telemetry1['LapNum'] = lap_number - 70
+            self.all_driver1_telemetry.append(self.lap_telemetry1)
+
         self.driver1_tel = pd.concat(self.all_driver1_telemetry)
 
         self.all_driver2_telemetry = []
         for lap_number, lap_object in self.driver_2_laps_df.iterlaps():
-            self.all_driver2_telemetry.append(lap_object.get_telemetry())
+            self.lap_telemetry2 = lap_object.get_telemetry()
+            self.lap_telemetry2['LapNum'] = lap_number + 1
+            self.all_driver2_telemetry.append(self.lap_telemetry2)
+
         self.driver2_tel = pd.concat(self.all_driver2_telemetry)
 
         self.SAMPLE_RATE = 1
@@ -154,12 +160,14 @@ class PlottingMachine:
         self.driver1_drs = self.driver1_tel['DRS'].values
         self.driver1_gear = self.driver1_tel['nGear'].values
         self.driver1_bis = self.driver1_tel['Brake'].values.astype(int)
+        self.driver1_lap_num = self.driver1_tel['LapNum'].values
         self.driver2_x = self.driver2_tel['X'].values
         self.driver2_y = self.driver2_tel['Y'].values
         self.driver2_speed = self.driver2_tel['Speed'].values
         self.driver2_drs = self.driver2_tel['DRS'].values
         self.driver2_gear = self.driver2_tel['nGear'].values
         self.driver2_bis = self.driver2_tel['Brake'].values.astype(int)
+        self.driver2_lap_num = self.driver2_tel['LapNum'].values
 
         self.driver1_time = self.driver1_tel['SessionTime'].dt.total_seconds().values
         self.driver2_time = self.driver2_tel['SessionTime'].dt.total_seconds().values
@@ -232,6 +240,12 @@ class PlottingMachine:
         self.brake_text2 = self.ax.text(0.8, 0.4, '',
                                         transform=self.ax.transAxes,color='#00a19b',fontsize=20,
                                         style='italic', fontname='Impact')
+        self.lap_text1 = self.ax.text(0.1, 0.8, '',
+                                      transform=self.ax.transAxes,color='#ed1e36',fontsize=30,
+                                      style='italic', fontname='Impact')
+        self.lap_text2 = self.ax.text(0.9, 0.8, '',
+                                      transform=self.ax.transAxes,color='#00a19b',fontsize=30,
+                                      style='italic', fontname='Impact')
         self.texts = []
         self.texts.append(self.speed_text1)
         self.texts.append(self.speed_text2)
@@ -239,6 +253,8 @@ class PlottingMachine:
         self.texts.append(self.gear_text2)
         self.texts.append(self.brake_text1)
         self.texts.append(self.brake_text2)
+        self.texts.append(self.lap_text1)
+        self.texts.append(self.lap_text2)
         adjust_text(self.texts, objects=[self.ax],arrowprops=dict(arrowstyle='-',color='grey'))
 
         # Title with circuit info
@@ -281,21 +297,25 @@ class PlottingMachine:
     def get_position(self,time_val, time_array,
                      x_array, y_array,
                      speed_array, drs_array,
-                     gear_array, brake_array):
+                     gear_array, brake_array,
+                     lap_num_array):
         """Interpolate position at given time"""
         if time_val > time_array[-1]:
             return (x_array[-1], y_array[-1],
                     speed_array[-1], drs_array[-1],
-                    gear_array[-1], brake_array[-1])
+                    gear_array[-1], brake_array[-1],
+                    lap_num_array[-1])
         idx = np.searchsorted(time_array, time_val)
         if idx == 0:
             return (x_array[0], y_array[0],
                     speed_array[0], drs_array[0],
-                    gear_array[0], brake_array[0])
+                    gear_array[0], brake_array[0],
+                    lap_num_array[0])
         if idx >= len(time_array):
             return (x_array[-1], y_array[-1],
                     speed_array[-1], drs_array[-1],
-                    gear_array[-1], brake_array[-1])
+                    gear_array[-1], brake_array[-1],
+                    lap_num_array[-1])
 
         # Linear interpolation
         t1, t2 = time_array[idx - 1], time_array[idx]
@@ -306,21 +326,24 @@ class PlottingMachine:
         drs = round(drs_array[idx - 1] + alpha * (drs_array[idx] - drs_array[idx - 1]))
         gear = round(gear_array[idx - 1] + alpha * (gear_array[idx] - gear_array[idx - 1]))
         brake = round(brake_array[idx - 1] + alpha * (brake_array[idx] - brake_array[idx - 1]))
-        return x, y, speed, drs, gear, brake
+        lap = round(lap_num_array[idx-1] + alpha * (lap_num_array[idx] - lap_num_array[idx - 1]))
+        return x, y, speed, drs, gear, brake, lap
 
     def animate(self,frame):
         """Animation function (optimized)"""
         self.current_time = self.driver1_time[frame]
 
         # Get positions
-        x1, y1, speed1, drs1, gear1, b1 = self.get_position(self.current_time, self.driver1_time,
+        x1, y1, speed1, drs1, gear1, b1, l1 = self.get_position(self.current_time, self.driver1_time,
                                                  self.driver1_x, self.driver1_y,
                                                  self.driver1_speed, self.driver1_drs,
-                                                 self.driver1_gear, self.driver1_bis)
-        x2, y2, speed2, drs2, gear2, b2 = self.get_position(self.current_time, self.driver2_time,
+                                                 self.driver1_gear, self.driver1_bis,
+                                                 self.driver1_lap_num)
+        x2, y2, speed2, drs2, gear2, b2, l2 = self.get_position(self.current_time, self.driver2_time,
                                            self.driver2_x, self.driver2_y,
                                            self.driver2_speed, self.driver2_drs,
-                                           self.driver2_gear, self.driver2_bis)
+                                           self.driver2_gear, self.driver2_bis,
+                                           self.driver2_lap_num)
 
         # Update points
         self.driver1_point.set_data([x1], [y1])
@@ -336,14 +359,16 @@ class PlottingMachine:
         # OPTIMIZATION: Sample trail points (every 2nd)
         for f in range(self.start_frame, frame + 1):
             t = self.driver1_time[f]
-            tx1, ty1, tvel1, self.d1, self.ng1, self.bis1 = self.get_position(t, self.driver1_time,
+            tx1, ty1, tvel1, self.d1, self.ng1, self.bis1, self.lap1 = self.get_position(t, self.driver1_time,
                                                     self.driver1_x, self.driver1_y,
                                                     self.driver1_speed, self.driver1_drs,
-                                                    self.driver1_gear, self.driver1_bis)
-            tx2, ty2, tvel2, self.d2, self.ng2, self.bis2 = self.get_position(t, self.driver2_time,
+                                                    self.driver1_gear, self.driver1_bis,
+                                                    self.driver1_lap_num)
+            tx2, ty2, tvel2, self.d2, self.ng2, self.bis2, self.lap2 = self.get_position(t, self.driver2_time,
                                                     self.driver2_x, self.driver2_y,
                                                     self.driver2_speed, self.driver2_drs,
-                                                    self.driver2_gear, self.driver2_bis)
+                                                    self.driver2_gear, self.driver2_bis,
+                                                    self.driver2_lap_num)
             trail1_x.append(tx1)
             trail1_y.append(ty1)
             trail2_x.append(tx2)
@@ -359,11 +384,11 @@ class PlottingMachine:
 
         self.speed_text1.set_text(f"{speed1:.0f} \nkm/h")
         self.speed_text2.set_text(f"{speed2:.0f} \nkm/h")
-        if self.d1 == 0:
+        if self.d1 == 1:
             self.drs_text1.set_text("DRS ZONE")
         else:
             self.drs_text1.set_text("")
-        if self.d2 == 0:
+        if self.d2 == 1:
             self.drs_text2.set_text("DRS ZONE")
         else:
             self.drs_text2.set_text("")
@@ -377,6 +402,8 @@ class PlottingMachine:
             self.brake_text2.set_text("BRAKE")
         else:
             self.brake_text2.set_text("")
+        self.lap_text1.set_text(f"LAP {self.lap1}")
+        self.lap_text2.set_text(f"LAP {self.lap2}")
 
 
         # Progress indicator (every 50 frames)
@@ -389,7 +416,8 @@ class PlottingMachine:
                 self.time_text, self.speed_text1, self.speed_text2,
                 self.drs_text1, self.drs_text2,
                 self.gear_text1, self.gear_text2,
-                self.brake_text1, self.brake_text2)
+                self.brake_text1, self.brake_text2,
+                self.lap_text1, self.lap_text2)
 
 
 
