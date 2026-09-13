@@ -139,6 +139,7 @@ class PlottingMachine:
             self.lap_telemetry1 = lap_object.get_telemetry()
             self.lap_telemetry1['LapNum'] = lap_number - 70
             self.lap_telemetry1['Tyre'] = lap_object['Compound']
+            self.lap_telemetry1['Position'] = lap_object['Position']
             self.all_driver1_telemetry.append(self.lap_telemetry1)
 
         self.driver1_tel = pd.concat(self.all_driver1_telemetry)
@@ -148,6 +149,7 @@ class PlottingMachine:
             self.lap_telemetry2 = lap_object.get_telemetry()
             self.lap_telemetry2['LapNum'] = lap_number + 1
             self.lap_telemetry2['Tyre'] = lap_object['Compound']
+            self.lap_telemetry2['Position'] = lap_object['Position']
             self.all_driver2_telemetry.append(self.lap_telemetry2)
 
         self.driver2_tel = pd.concat(self.all_driver2_telemetry)
@@ -164,6 +166,7 @@ class PlottingMachine:
         self.driver1_bis = self.driver1_tel['Brake'].values.astype(int)
         self.driver1_lap_num = self.driver1_tel['LapNum'].values
         self.driver1_tyre = self.driver1_tel['Tyre'].values
+        self.driver1_position = self.driver1_tel['Position'].values
 
         self.driver2_x = self.driver2_tel['X'].values
         self.driver2_y = self.driver2_tel['Y'].values
@@ -173,6 +176,7 @@ class PlottingMachine:
         self.driver2_bis = self.driver2_tel['Brake'].values.astype(int)
         self.driver2_lap_num = self.driver2_tel['LapNum'].values
         self.driver2_tyre = self.driver2_tel['Tyre'].values
+        self.driver2_position = self.driver2_tel['Position'].values
 
         self.driver1_time = self.driver1_tel['SessionTime'].dt.total_seconds().values
         self.driver2_time = self.driver2_tel['SessionTime'].dt.total_seconds().values
@@ -230,7 +234,7 @@ class PlottingMachine:
         self.drs_text1 = self.ax.text(0.05, 0.4, '',
                                       transform=self.ax.transAxes,color='#ed1e36',fontsize=20,
                                       style='italic', fontname='Impact')
-        self.drs_text2 = self.ax.text(0.9, 0.4, '',
+        self.drs_text2 = self.ax.text(0.95, 0.4, '',
                                       transform=self.ax.transAxes,color='#00a19b',fontsize=20,
                                       style='italic', fontname='Impact')
         self.gear_text1 = self.ax.text(0.1, 0.7,'',
@@ -239,10 +243,10 @@ class PlottingMachine:
         self.gear_text2 = self.ax.text(0.9, 0.7, '',
                                        transform=self.ax.transAxes,color='#00a19b',fontsize=30,
                                        style='italic', fontname='Impact')
-        self.brake_text1 = self.ax.text(0.2, 0.4, '',
+        self.brake_text1 = self.ax.text(0.15, 0.4, '',
                                         transform=self.ax.transAxes,color='#ed1e36',fontsize=20,
                                         style='italic', fontname='Impact')
-        self.brake_text2 = self.ax.text(0.8, 0.4, '',
+        self.brake_text2 = self.ax.text(0.85, 0.4, '',
                                         transform=self.ax.transAxes,color='#00a19b',fontsize=20,
                                         style='italic', fontname='Impact')
         self.lap_text1 = self.ax.text(0.1, 0.8, '',
@@ -257,17 +261,27 @@ class PlottingMachine:
         self.tyre_text2 = self.ax.text(0.9, 0.2, '',
                                        transform=self.ax.transAxes,color='#00a19b',fontsize=30,
                                        style='italic', fontname='Impact')
+        self.position_text1 = self.ax.text(0.1, 0.3, '',
+                                           transform=self.ax.transAxes,color='#ed1e36',fontsize=60,
+                                           style='italic', fontname='Impact')
+        self.position_text2 = self.ax.text(0.9, 0.3, '',
+                                           transform=self.ax.transAxes,color='#00a19b',fontsize=60,
+                                           style='italic', fontname='Impact')
         self.texts = []
         self.texts.append(self.speed_text1)
         self.texts.append(self.speed_text2)
         self.texts.append(self.gear_text1)
         self.texts.append(self.gear_text2)
+        self.texts.append(self.drs_text1)
+        self.texts.append(self.drs_text2)
         self.texts.append(self.brake_text1)
         self.texts.append(self.brake_text2)
         self.texts.append(self.lap_text1)
         self.texts.append(self.lap_text2)
         self.texts.append(self.tyre_text1)
         self.texts.append(self.tyre_text2)
+        self.texts.append(self.position_text1)
+        self.texts.append(self.position_text2)
         adjust_text(self.texts, objects=[self.ax],arrowprops=dict(arrowstyle='-',color='grey'))
 
         # Title with circuit info
@@ -285,7 +299,7 @@ class PlottingMachine:
                   edgecolor='white', labelcolor='white')
         self.ax.grid(True, alpha=0.2, color='white')
         self.ax.set_aspect('equal')
-        self.ax.set_box_aspect(0.7)
+        self.ax.set_box_aspect(0.5625)
 
         # OPTIMIZATION: Lower FPS and frame count
           # Reduced from 30
@@ -311,24 +325,28 @@ class PlottingMachine:
                      x_array, y_array,
                      speed_array, drs_array,
                      gear_array, brake_array,
-                     lap_num_array, tyre_array):
+                     lap_num_array, tyre_array,
+                     position_array):
         """Interpolate position at given time"""
         if time_val > time_array[-1]:
             return (x_array[-1], y_array[-1],
                     speed_array[-1], drs_array[-1],
                     gear_array[-1], brake_array[-1],
-                    lap_num_array[-1], tyre_array[-1])
+                    lap_num_array[-1], tyre_array[-1],
+                    position_array[-1])
         idx = np.searchsorted(time_array, time_val)
         if idx == 0:
             return (x_array[0], y_array[0],
                     speed_array[0], drs_array[0],
                     gear_array[0], brake_array[0],
-                    lap_num_array[0], tyre_array[0])
+                    lap_num_array[0], tyre_array[0],
+                    position_array[0])
         if idx >= len(time_array):
             return (x_array[-1], y_array[-1],
                     speed_array[-1], drs_array[-1],
                     gear_array[-1], brake_array[-1],
-                    lap_num_array[-1], tyre_array[-1])
+                    lap_num_array[-1], tyre_array[-1],
+                    position_array[-1])
 
         # Linear interpolation
         t1, t2 = time_array[idx - 1], time_array[idx]
@@ -340,27 +358,34 @@ class PlottingMachine:
         gear = round(gear_array[idx - 1] + alpha * (gear_array[idx] - gear_array[idx - 1]))
         brake = round(brake_array[idx - 1] + alpha * (brake_array[idx] - brake_array[idx - 1]))
         lap = round(lap_num_array[idx-1] + alpha * (lap_num_array[idx] - lap_num_array[idx - 1]))
+        position = round(position_array[idx - 1] + alpha * (position_array[idx - 1] - position_array[idx - 1]))
         if alpha <= 0.5:
             tyre = tyre_array[idx - 1]
         else:
             tyre = tyre_array[idx]
-        return x, y, speed, drs, gear, brake, lap, tyre
+        return (x, y,
+                speed, drs,
+                gear, brake,
+                lap, tyre,
+                position)
 
     def animate(self,frame):
         """Animation function (optimized)"""
         self.current_time = self.driver1_time[frame]
 
         # Get positions
-        x1, y1, speed1, drs1, gear1, b1, l1, ty1 = self.get_position(self.current_time, self.driver1_time,
+        x1, y1, speed1, drs1, gear1, b1, l1, ty1, p1 = self.get_position(self.current_time, self.driver1_time,
                                                  self.driver1_x, self.driver1_y,
                                                  self.driver1_speed, self.driver1_drs,
                                                  self.driver1_gear, self.driver1_bis,
-                                                 self.driver1_lap_num, self.driver1_tyre)
-        x2, y2, speed2, drs2, gear2, b2, l2, ty2 = self.get_position(self.current_time, self.driver2_time,
+                                                 self.driver1_lap_num, self.driver1_tyre,
+                                                 self.driver1_position)
+        x2, y2, speed2, drs2, gear2, b2, l2, ty2, p2 = self.get_position(self.current_time, self.driver2_time,
                                            self.driver2_x, self.driver2_y,
                                            self.driver2_speed, self.driver2_drs,
                                            self.driver2_gear, self.driver2_bis,
-                                           self.driver2_lap_num, self.driver2_tyre)
+                                           self.driver2_lap_num, self.driver2_tyre,
+                                           self.driver2_position)
 
         # Update points
         self.driver1_point.set_data([x1], [y1])
@@ -376,16 +401,18 @@ class PlottingMachine:
         # OPTIMIZATION: Sample trail points (every 2nd)
         for f in range(self.start_frame, frame + 1):
             t = self.driver1_time[f]
-            tx1, ty1, tvel1, self.d1, self.ng1, self.bis1, self.lap1, self.tyres1 = self.get_position(t, self.driver1_time,
+            tx1, ty1, tvel1, self.d1, self.ng1, self.bis1, self.lap1, self.tyres1, self.pos1 = self.get_position(t, self.driver1_time,
                                                     self.driver1_x, self.driver1_y,
                                                     self.driver1_speed, self.driver1_drs,
                                                     self.driver1_gear, self.driver1_bis,
-                                                    self.driver1_lap_num, self.driver1_tyre)
-            tx2, ty2, tvel2, self.d2, self.ng2, self.bis2, self.lap2, self.tyres2 = self.get_position(t, self.driver2_time,
+                                                    self.driver1_lap_num, self.driver1_tyre,
+                                                    self.driver1_position)
+            tx2, ty2, tvel2, self.d2, self.ng2, self.bis2, self.lap2, self.tyres2, self.pos2 = self.get_position(t, self.driver2_time,
                                                     self.driver2_x, self.driver2_y,
                                                     self.driver2_speed, self.driver2_drs,
                                                     self.driver2_gear, self.driver2_bis,
-                                                    self.driver2_lap_num, self.driver2_tyre)
+                                                    self.driver2_lap_num, self.driver2_tyre,
+                                                    self.driver2_position)
             trail1_x.append(tx1)
             trail1_y.append(ty1)
             trail2_x.append(tx2)
@@ -423,6 +450,8 @@ class PlottingMachine:
         self.lap_text2.set_text(f"LAP {self.lap2}")
         self.tyre_text1.set_text(self.tyres1)
         self.tyre_text2.set_text(self.tyres2)
+        self.position_text1.set_text(f"P{self.pos1}")
+        self.position_text2.set_text(f"P{self.pos2}")
 
 
         # Progress indicator (every 50 frames)
@@ -437,7 +466,8 @@ class PlottingMachine:
                 self.gear_text1, self.gear_text2,
                 self.brake_text1, self.brake_text2,
                 self.lap_text1, self.lap_text2,
-                self.tyre_text1, self.tyre_text2)
+                self.tyre_text1, self.tyre_text2,
+                self.position_text1, self.position_text2)
 
 
 
