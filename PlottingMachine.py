@@ -158,8 +158,8 @@ class PlottingMachine:
         self.driver1_tel = self.driver1_tel.iloc[::self.SAMPLE_RATE].reset_index(drop=True)
         self.driver2_tel = self.driver2_tel.iloc[::self.SAMPLE_RATE].reset_index(drop=True)
 
-        self.driver1_x = self.driver1_tel['X'].values
-        self.driver1_y = self.driver1_tel['Y'].values
+        self.driver1_x = 0.8*self.driver1_tel['X'].values-1000
+        self.driver1_y = 0.8*self.driver1_tel['Y'].values
         self.driver1_speed = self.driver1_tel['Speed'].values
         self.driver1_drs = self.driver1_tel['DRS'].values
         self.driver1_gear = self.driver1_tel['nGear'].values
@@ -168,8 +168,8 @@ class PlottingMachine:
         self.driver1_tyre = self.driver1_tel['Tyre'].values
         self.driver1_position = self.driver1_tel['Position'].values
 
-        self.driver2_x = self.driver2_tel['X'].values
-        self.driver2_y = self.driver2_tel['Y'].values
+        self.driver2_x = 0.8*self.driver2_tel['X'].values-1000
+        self.driver2_y = 0.8*self.driver2_tel['Y'].values
         self.driver2_speed = self.driver2_tel['Speed'].values
         self.driver2_drs = self.driver2_tel['DRS'].values
         self.driver2_gear = self.driver2_tel['nGear'].values
@@ -198,26 +198,33 @@ class PlottingMachine:
         self.fig, self.ax = plt.subplots(figsize=(10, 8), dpi=60)
         self.fig.patch.set_facecolor('#1a1a1a')
         self.ax.set_facecolor('#2a2a2a')
+        self.xmin = -4754
+        self.xmax = 2003
+        self.ymin = -5893
+        self.ymax = 5487
+        print(self.xmin, self.xmax, self.ymin, self.ymax)
+        self.ax.set_xlim(1.2*self.xmin, 1.2*self.xmax)
+        self.ax.set_ylim(self.ymin, self.ymax)
 
         # OPTIMIZATION: Sample track background points (every 2nd point)
         self.ax.plot(self.driver1_x, self.driver1_y,
                 color='lightgrey', alpha=0.5, linewidth=16,
-                linestyle='-')
+                linestyle='-',zorder=2)
         self.ax.plot(self.driver2_x, self.driver2_y,
                 color='black', alpha=0.9, linewidth=10,
-                linestyle='-')
+                linestyle='-',zorder=2)
 
         # Initialize moving elements
         self.driver1_point, = self.ax.plot([], [], 'o', color='#ed1e36', markersize=12,
                                  label=f'{self.DRIVER_1}', markeredgecolor='white',
-                                 markeredgewidth=1.5)
+                                 markeredgewidth=1.5,zorder=3)
         self.driver2_point, = self.ax.plot([], [], 'o', color='#00a19b', markersize=12,
                                  label=f'{self.DRIVER_2}', markeredgecolor='white',
-                                 markeredgewidth=1.5)
+                                 markeredgewidth=1.5,zorder=3)
 
         # OPTIMIZATION: Shorter trails
-        self.driver1_trail, = self.ax.plot([], [], color='#ed1e36', alpha=0.5, linewidth=2.5)
-        self.driver2_trail, = self.ax.plot([], [], color='#00a19b', alpha=0.5, linewidth=2.5)
+        self.driver1_trail, = self.ax.plot([], [], color='#ed1e36', alpha=0.5, linewidth=2.5,zorder=3)
+        self.driver2_trail, = self.ax.plot([], [], color='#00a19b', alpha=0.5, linewidth=2.5,zorder=3)
 
         # Time display
         self.time_text = self.ax.text(0.25, 0.98, '', transform=self.ax.transAxes,
@@ -284,11 +291,6 @@ class PlottingMachine:
         self.texts.append(self.position_text2)
         adjust_text(self.texts, objects=[self.ax],arrowprops=dict(arrowstyle='-',color='grey'))
 
-        # Title with circuit info
-        self.title_text = (f"{self.circuit_info['EventName']} - {self.circuit_info['Location']}\n"
-                      f"{self.DRIVER_1} vs {self.DRIVER_2}")
-        self.ax.set_title(self.title_text, fontsize=14, color='white', pad=15, fontweight='bold')
-
         # Styling
         self.ax.set_xlabel('X Position (m)', fontsize=10, color='white')
         self.ax.set_ylabel('Y Position (m)', fontsize=10, color='white')
@@ -298,7 +300,6 @@ class PlottingMachine:
                   bbox_to_anchor=(0.7,1), fontsize=20, markerscale=2, facecolor='black',
                   edgecolor='white', labelcolor='white')
         self.ax.grid(True, alpha=0.2, color='white')
-        self.ax.set_aspect('equal')
         self.ax.set_box_aspect(0.5625)
 
         # OPTIMIZATION: Lower FPS and frame count
@@ -314,6 +315,9 @@ class PlottingMachine:
         print("\nBuilding animation frames (this is faster with optimizations)...")
         self.root = Tk()
         self.root.state('zoomed')
+        self.bg_data = plt.imread("LapLens_BG.png")
+        self.ax.imshow(self.bg_data, aspect='equal',zorder=0,
+                       extent=[2.5*self.xmin+1000, 2.5*self.xmax+1000, self.ymin-200, self.ymax+200])
         self.ani = FuncAnimation(self.fig, self.animate, frames=range(0, self.total_frames, self.speed_factor),
                              interval=600/self.FPS, blit=True, repeat=False)
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
