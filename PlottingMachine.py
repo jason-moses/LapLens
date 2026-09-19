@@ -232,47 +232,47 @@ class PlottingMachine:
                             bbox=dict(boxstyle='round', facecolor='black', alpha=0.8),
                             color='white', fontfamily='monospace')
 
-        self.speed_text1 = self.ax.text(0.1, 0.5, '',
+        self.speed_text1 = self.ax.text(0.095, 0.41, '',
                                         transform=self.ax.transAxes,color='#ed1e36',fontsize=50,
                                         style='italic', fontname='Impact')
-        self.speed_text2 = self.ax.text(0.9, 0.5, '',
+        self.speed_text2 = self.ax.text(0.68, 0.41, '',
                                         transform=self.ax.transAxes,color='#00a19b',fontsize=50,
                                         style='italic', fontname='Impact')
-        self.drs_text1 = self.ax.text(0.05, 0.4, '',
-                                      transform=self.ax.transAxes,color='#ed1e36',fontsize=20,
+        self.drs_text1 = self.ax.text(0.085, 0.32, '',
+                                      transform=self.ax.transAxes,color='#ed1e36',fontsize=25,
                                       style='italic', fontname='Impact')
-        self.drs_text2 = self.ax.text(0.95, 0.4, '',
-                                      transform=self.ax.transAxes,color='#00a19b',fontsize=20,
+        self.drs_text2 = self.ax.text(0.67, 0.32, '',
+                                      transform=self.ax.transAxes,color='#00a19b',fontsize=25,
                                       style='italic', fontname='Impact')
-        self.gear_text1 = self.ax.text(0.1, 0.7,'',
-                                       transform=self.ax.transAxes,color='#ed1e36',fontsize=30,
+        self.gear_text1 = self.ax.text(0.085, 0.5,'',
+                                       transform=self.ax.transAxes,color='#ed1e36',fontsize=50,
                                        style='italic', fontname='Impact')
-        self.gear_text2 = self.ax.text(0.9, 0.7, '',
-                                       transform=self.ax.transAxes,color='#00a19b',fontsize=30,
+        self.gear_text2 = self.ax.text(0.67, 0.5, '',
+                                       transform=self.ax.transAxes,color='#00a19b',fontsize=50,
                                        style='italic', fontname='Impact')
-        self.brake_text1 = self.ax.text(0.15, 0.4, '',
-                                        transform=self.ax.transAxes,color='#ed1e36',fontsize=20,
+        self.brake_text1 = self.ax.text(0.197, 0.32, '',
+                                        transform=self.ax.transAxes,color='#ed1e36',fontsize=25,
                                         style='italic', fontname='Impact')
-        self.brake_text2 = self.ax.text(0.85, 0.4, '',
-                                        transform=self.ax.transAxes,color='#00a19b',fontsize=20,
+        self.brake_text2 = self.ax.text(0.783, 0.32, '',
+                                        transform=self.ax.transAxes,color='#00a19b',fontsize=25,
                                         style='italic', fontname='Impact')
-        self.lap_text1 = self.ax.text(0.1, 0.8, '',
-                                      transform=self.ax.transAxes,color='#ed1e36',fontsize=30,
+        self.lap_text1 = self.ax.text(0.085, 0.59, '',
+                                      transform=self.ax.transAxes,color='#ed1e36',fontsize=50,
                                       style='italic', fontname='Impact')
-        self.lap_text2 = self.ax.text(0.9, 0.8, '',
-                                      transform=self.ax.transAxes,color='#00a19b',fontsize=30,
+        self.lap_text2 = self.ax.text(0.67, 0.59, '',
+                                      transform=self.ax.transAxes,color='#00a19b',fontsize=50,
                                       style='italic', fontname='Impact')
-        self.tyre_text1 = self.ax.text(0.1, 0.2, '',
-                                       transform=self.ax.transAxes,color='#ed1e36',fontsize=30,
+        self.tyre_text1 = self.ax.text(0.197, 0.225, '',
+                                       transform=self.ax.transAxes,color='#ed1e36',fontsize=25,
                                        style='italic', fontname='Impact')
-        self.tyre_text2 = self.ax.text(0.9, 0.2, '',
-                                       transform=self.ax.transAxes,color='#00a19b',fontsize=30,
+        self.tyre_text2 = self.ax.text(0.783, 0.225, '',
+                                       transform=self.ax.transAxes,color='#00a19b',fontsize=25,
                                        style='italic', fontname='Impact')
-        self.position_text1 = self.ax.text(0.1, 0.3, '',
-                                           transform=self.ax.transAxes,color='#ed1e36',fontsize=60,
+        self.position_text1 = self.ax.text(0.09, 0.23, '',
+                                           transform=self.ax.transAxes,color='#ed1e36',fontsize=50,
                                            style='italic', fontname='Impact')
-        self.position_text2 = self.ax.text(0.9, 0.3, '',
-                                           transform=self.ax.transAxes,color='#00a19b',fontsize=60,
+        self.position_text2 = self.ax.text(0.675, 0.23, '',
+                                           transform=self.ax.transAxes,color='#00a19b',fontsize=50,
                                            style='italic', fontname='Impact')
         self.texts = []
         self.texts.append(self.speed_text1)
@@ -430,30 +430,30 @@ class PlottingMachine:
                            f'{self.DRIVER_1}: {self.driver1_fastest["LapTime"]}\n'
                            f'{self.DRIVER_2}: {self.driver2_fastest["LapTime"]}')
 
-        self.speed_text1.set_text(f"{speed1:.0f} \nkm/h")
-        self.speed_text2.set_text(f"{speed2:.0f} \nkm/h")
+        self.speed_text1.set_text(round(speed1))
+        self.speed_text2.set_text(round(speed2))
         if self.d1 == 1:
-            self.drs_text1.set_text("DRS ZONE")
+            self.drs_text1.set_text("IN")
         else:
-            self.drs_text1.set_text("")
+            self.drs_text1.set_text("OUT")
         if self.d2 == 1:
-            self.drs_text2.set_text("DRS ZONE")
+            self.drs_text2.set_text("IN")
         else:
-            self.drs_text2.set_text("")
-        self.gear_text1.set_text(f"GEAR: {gear1:.0f}")
-        self.gear_text2.set_text(f"GEAR: {gear2:.0f}")
+            self.drs_text2.set_text("OUT")
+        self.gear_text1.set_text(round(gear1))
+        self.gear_text2.set_text(round(gear2))
         if self.bis1 == 0:
-            self.brake_text1.set_text("BRAKE")
+            self.brake_text1.set_text("ON")
         else:
             self.brake_text1.set_text("")
         if self.bis2 == 0:
-            self.brake_text2.set_text("BRAKE")
+            self.brake_text2.set_text("ON")
         else:
             self.brake_text2.set_text("")
-        self.lap_text1.set_text(f"LAP {self.lap1}")
-        self.lap_text2.set_text(f"LAP {self.lap2}")
-        self.tyre_text1.set_text(self.tyres1)
-        self.tyre_text2.set_text(self.tyres2)
+        self.lap_text1.set_text(self.lap1)
+        self.lap_text2.set_text(self.lap2)
+        self.tyre_text1.set_text(self.tyres1[0])
+        self.tyre_text2.set_text(self.tyres2[0])
         self.position_text1.set_text(f"P{self.pos1}")
         self.position_text2.set_text(f"P{self.pos2}")
 
