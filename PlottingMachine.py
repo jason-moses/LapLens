@@ -7,6 +7,7 @@ from matplotlib.animation import FuncAnimation
 import gc
 import warnings
 from tkinter import *
+import math
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from adjustText import adjust_text
@@ -103,13 +104,13 @@ class PlottingMachine:
         for i, lap in enumerate(self.driver1_laps.iterlaps(), 1):
             self.lap_data.append({
                 'Lap': i,
-                f'{self.DRIVER_1} Time': lap[1]['LapTime'],
+                f'{self.DRIVER_1} Time': lap[1]['LapTime'].total_seconds(),
                 f'{self.DRIVER_1} Fastest': '*' if lap[1]['LapTime'] == self.driver1_fastest['LapTime'] else ''
             })
 
         for i, lap in enumerate(self.driver2_laps.iterlaps(), 1):
             if i <= len(self.lap_data):
-                self.lap_data[i - 1][f'{self.DRIVER_2} Time'] = lap[1]['LapTime']
+                self.lap_data[i - 1][f'{self.DRIVER_2} Time'] = lap[1]['LapTime'].total_seconds()
                 self.lap_data[i - 1][f'{self.DRIVER_2} Fastest'] = '*' if lap[1]['LapTime'] == self.driver2_fastest['LapTime'] else ''
 
             else:
@@ -227,10 +228,16 @@ class PlottingMachine:
         self.driver2_trail, = self.ax.plot([], [], color='#00a19b', alpha=0.5, linewidth=2.5,zorder=3)
 
         # Time display
-        self.time_text = self.ax.text(0.25, 0.98, '', transform=self.ax.transAxes,
-                            fontsize=11, verticalalignment='top',
+        self.time_text = self.ax.text(0.17, 0.98, '', transform=self.ax.transAxes,
+                            fontsize=25, verticalalignment='top',
                             bbox=dict(boxstyle='round', facecolor='black', alpha=0.8),
                             color='white', fontfamily='monospace')
+        self.fastest_lap1 = self.ax.text(0.08,0.67,'',
+                                         transform=self.ax.transAxes,color='#ed1e36',fontsize=25,
+                                         style='italic', fontname='Impact')
+        self.fastest_lap2 = self.ax.text(0.665,0.67,'',
+                                         transform=self.ax.transAxes,color='#00a19b',fontsize=25,
+                                         style='italic', fontname='Impact')
 
         self.speed_text1 = self.ax.text(0.095, 0.41, '',
                                         transform=self.ax.transAxes,color='#ed1e36',fontsize=50,
@@ -270,10 +277,12 @@ class PlottingMachine:
                                        style='italic', fontname='Impact')
         self.position_text1 = self.ax.text(0.09, 0.23, '',
                                            transform=self.ax.transAxes,color='#ed1e36',fontsize=50,
-                                           style='italic', fontname='Impact')
+                                           style='italic', fontname='Impact',
+                                           bbox=dict(boxstyle='round', facecolor='black', alpha=1))
         self.position_text2 = self.ax.text(0.675, 0.23, '',
                                            transform=self.ax.transAxes,color='#00a19b',fontsize=50,
-                                           style='italic', fontname='Impact')
+                                           style='italic', fontname='Impact',
+                                           bbox=dict(boxstyle='round', facecolor='black', alpha=1))
         self.texts = []
         self.texts.append(self.speed_text1)
         self.texts.append(self.speed_text2)
@@ -426,9 +435,12 @@ class PlottingMachine:
         self.driver2_trail.set_data(trail2_x, trail2_y)
 
         # Update time display
-        self.time_text.set_text(f'Time: {self.current_time:.2f}s\n'
-                           f'{self.DRIVER_1}: {self.driver1_fastest["LapTime"]}\n'
-                           f'{self.DRIVER_2}: {self.driver2_fastest["LapTime"]}')
+        self.hours = math.floor(round(self.current_time,2)/3600)
+        self.minutes = math.floor(round(self.current_time,2)/60) - 60*self.hours
+        self.seconds = round(self.current_time%60)
+        self.time_text.set_text(f'Time: {self.hours}:{self.minutes}:{self.seconds}')
+        self.fastest_lap1.set_text("1:12.486")
+        self.fastest_lap2.set_text("1:11.982")
 
         self.speed_text1.set_text(round(speed1))
         self.speed_text2.set_text(round(speed2))
@@ -471,7 +483,8 @@ class PlottingMachine:
                 self.brake_text1, self.brake_text2,
                 self.lap_text1, self.lap_text2,
                 self.tyre_text1, self.tyre_text2,
-                self.position_text1, self.position_text2)
+                self.position_text1, self.position_text2,
+                self.fastest_lap1, self.fastest_lap2)
 
 
 
