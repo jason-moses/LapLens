@@ -23,6 +23,17 @@ SESSION = "R"
 
 class TyreData:
     def __init__(self):
+
+        self.cache_dir = os.path.expanduser('-f1_cache')
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
+            print("Successfully created the cache directory")
+
+        else:
+            print("Cache directory already exists")
+
+        fastf1.Cache.enable_cache(self.cache_dir)
+        print("Libraries Installed and Imported Successfully")
         self.slide2 = Tk()
         self.slide2.title("Tyre Analysis")
         self.slide2.state("zoomed")
@@ -75,5 +86,22 @@ class TyreData:
         self.canvas_widget = self.canvas.get_tk_widget()
         self.canvas_widget.pack(fill="both", expand=True)
         self.canvas.draw()
+        self.screen_width = self.slide2.winfo_screenwidth()
+        self.screen_height = self.slide2.winfo_screenheight()
+        self.button1 = Button(
+            self.slide2,
+            text="Continue",
+            font=("Arial", 14, "bold"),
+            bg="white",
+            fg="black",
+            padx=20,
+            pady=10,
+            command=self.on_continue)
+        self.button1.place(x=0.98 * self.screen_width, y=0.9 * self.screen_height, anchor="se")
         self.slide2.mainloop()
+
+    def on_continue(self):
+        self.slide2.withdraw()
+        from PlottingMachine import PlottingMachine
+        plotting_machine = PlottingMachine()
 

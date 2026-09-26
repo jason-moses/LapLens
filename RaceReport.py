@@ -46,9 +46,12 @@ class Report:
                 pady=10,
                 command=self.on_continue)
             self.button1.place(x=0.98 * self.screen_width, y=0.9 * self.screen_height, anchor="se")
+            self.slide1.mainloop()
 
 
     def on_continue(self):
-            self.slide1.destroy()
+            self.slide1.withdraw()
             self.slide_number += 1
             print(self.slide_number)
+            from TyreData import TyreData
+            tyre_report = TyreData()
