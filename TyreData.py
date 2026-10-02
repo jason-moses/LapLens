@@ -28,13 +28,14 @@ class TyreData:
         self.slide2.state("zoomed")
         self.slide2.update_idletasks()
         self.screen_width = self.slide2.winfo_screenwidth()
-        self.screen_height = self.slide2.winfo_screenheight()
-        self.bg_image_raw = Image.open("Tyre Stints.jpeg")
+        self.screen_height = round(0.9*self.slide2.winfo_screenheight())
+        self.bg_image_raw = Image.open("Tyre Stints.png")
         self.bg_image = ImageTk.PhotoImage(self.bg_image_raw, master=self.slide2)
         self.bg_image_resized = self.bg_image_raw.resize((self.screen_width, self.screen_height),
                                                          Image.Resampling.LANCZOS)
-        self.bg_label = Label(self.slide2, image=self.bg_image)
-        self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        self.final_image = ImageTk.PhotoImage(self.bg_image_resized)
+        self.bg_label = Label(self.slide2, image=self.final_image)
+        self.bg_label.place(x=0, y=10, relwidth=1, relheight=1)
         self.button1 = Button(
             self.slide2,
             text="Continue",
@@ -44,7 +45,7 @@ class TyreData:
             padx=20,
             pady=10,
             command=self.on_continue)
-        self.button1.place(x=0.98 * self.screen_width, y=0.9 * self.screen_height, anchor="se")
+        self.button1.place(x=0.98 * self.screen_width, y=0.98 * self.screen_height, anchor="se")
         self.slide2.mainloop()
 
 
