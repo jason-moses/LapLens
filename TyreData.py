@@ -51,4 +51,6 @@ class TyreData:
 
     def on_continue(self):
             self.slide2.withdraw()
+            from TyreDegradation import DegradationData
+            degradation_data = DegradationData()
 
