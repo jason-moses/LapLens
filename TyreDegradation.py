@@ -50,3 +50,5 @@ class DegradationData:
 
     def on_continue(self):
         self.slide3.withdraw()
+        from DeepDive import DeepDive
+        dive = DeepDive()
