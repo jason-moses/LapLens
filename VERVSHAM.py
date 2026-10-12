@@ -50,3 +50,5 @@ class VerVSHam:
 
     def on_continue(self):
         self.slide5.withdraw()
+        from StintComparison import StintComparison
+        stint_comparison = StintComparison()
