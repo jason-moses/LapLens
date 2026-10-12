@@ -8,5 +8,3 @@ if mode == "Race Replay":
 if mode == "Race Report":
     from RaceReport import Report
     report = Report()
-
-
