@@ -1,18 +1,6 @@
-import os
-import fastf1
-import fastf1.plotting
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-import gc
 import warnings
 from tkinter import *
 from PIL import Image, ImageTk
-import math
-
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from adjustText import adjust_text
 
 warnings.filterwarnings("ignore")
 
