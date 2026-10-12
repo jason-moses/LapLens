@@ -50,3 +50,5 @@ class DeepDive:
 
     def on_continue(self):
         self.slide4.withdraw()
+        from VERVSHAM import VerVSHam
+        analysis = VerVSHam()
